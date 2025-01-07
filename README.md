@@ -74,9 +74,11 @@ The script is designed to be easily customizable. Edit these files to modify the
 
 Want to make this setup script your own? Here's how to customize every aspect of it:
 
-### 1. Fork and Clone
+### 1. `Use this template` or Fork and Clone
 
-First, fork this repository and clone it:
+First click `Use this template` above and clone to your machine
+
+Or, fork this repository and clone it:
 
 ```bash
 git clone https://github.com/YOUR_USERNAME/setup.git
