@@ -268,12 +268,12 @@ defaults write NSGlobalDomain ApplePressAndHoldEnabled -bool false
 # Install essential VS Code extensions for web development
 log "Installing VS Code extensions..."
 code_extensions=(
-    "bradlc.vscode-tailwindcss"      # Tailwind CSS IntelliSense
-    "dsznajder.es7-react-js-snippets" # React/Redux snippets
-    "dbaeumer.vscode-eslint"         # ESLint integration
-    "esbenp.prettier-vscode"         # Prettier formatting
-    "github.copilot"                 # AI code completion
-    "github.copilot-chat"            # AI chat interface
+    "bradlc.vscode-tailwindcss"        # Tailwind CSS IntelliSense
+    "dsznajder.es7-react-js-snippets"  # React/Redux snippets
+    "dbaeumer.vscode-eslint"           # ESLint integration
+    "esbenp.prettier-vscode"           # Prettier formatting
+    "github.copilot"                   # AI code completion
+    "github.copilot-chat"              # AI chat interface
 )
 
 for extension in "${code_extensions[@]}"; do
