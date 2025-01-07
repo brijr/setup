@@ -1,0 +1,36 @@
+# Development Tools
+visual-studio-code   # Primary code editor
+cursor               # AI-powered code editor
+zed                  # Fast, collaborative editor
+windsurf             # AI-powered IDE
+httpie               # CLI for HTTP requests
+docker-desktop       # Docker management
+ngrok                # Local tunnel for testing
+
+# Browsers
+arc                          # AI-powered browser optimized for developers
+firefox@developer-edition    # Firefox with developer tools
+
+# Productivity
+raycast            # Spotlight replacement with extensions
+ghostty            # Modern terminal emulator
+notion             # Notes and documentation
+notion-calendar    # Calendar integration
+setapp             # Curated app store
+rectangle          # Window management
+maccy              # Clipboard manager
+
+# Communication
+slack              # Team communication
+telegram           # Instant messaging
+discord            # Developer communities
+zoom               # Video conferencing
+
+# Design Tools
+figma              # UI/UX design tool
+
+# Project Management
+linear-linear      # Modern project management
+
+# Entertainment
+spotify            # Music streaming

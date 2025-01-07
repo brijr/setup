@@ -1,6 +1,6 @@
 #!/bin/zsh
 
-###############################################################################
+###########################################
 # Macbook Setup Script for Modern Web Development
 # Author: brijr (https://brijr.dev)
 # Last Updated: 2025
@@ -9,31 +9,181 @@
 # with a focus on TypeScript, React, and Next.js development.
 # It includes modern tools and sensible defaults for a great
 # developer experience.
-###############################################################################
+###########################################
 
-###############################################################################
+###########################################
 # Error Handling & Logging Configuration
-###############################################################################
-set -euo pipefail  # -e: exit on error, -u: error on undefined var, -o pipefail: pipeline fails on the first failed command
+###########################################
+# Exit on error (-e) and undefined variables (-u)
+# This helps catch problems early rather than causing
+# issues later in the script
+set -e  # Exit on error
+set -u  # Exit on undefined variable
+
+# Colors for better logging
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+NC='\033[0m' # No Color
 
 # Logging function for better debugging and progress tracking
+# Format: [YYYY-MM-DD HH:MM:SS] Message
 log() {
-    echo "[$(date +'%Y-%m-%d %H:%M:%S')] $1"
+    local level=$1
+    local message=$2
+    local timestamp=$(date +'%Y-%m-%d %H:%M:%S')
+    case $level in
+        "INFO")
+            echo -e "${BLUE}[${timestamp}] INFO: ${message}${NC}"
+            ;;
+        "SUCCESS")
+            echo -e "${GREEN}[${timestamp}] SUCCESS: ${message}${NC}"
+            ;;
+        "WARNING")
+            echo -e "${YELLOW}[${timestamp}] WARNING: ${message}${NC}"
+            ;;
+        "ERROR")
+            echo -e "${RED}[${timestamp}] ERROR: ${message}${NC}"
+            ;;
+        *)
+            echo -e "[${timestamp}] ${message}"
+            ;;
+    esac
 }
 
-# Error handling function that shows the line number where the error occurred
+# Error handling function that shows the line number
+# where the error occurred
 handle_error() {
-    log "Error occurred in script at line: ${1}"
+    log "ERROR" "An error occurred in script at line: ${1}"
     exit 1
 }
 
+# Trap any errors and handle them with our error function
 trap 'handle_error ${LINENO}' ERR
 
-log "Starting setup script..."
+# Function to check if required files exist
+check_required_files() {
+    local script_dir=$(dirname "$0")
+    local required_files=("packages.txt" "apps.txt" "vscode-extensions.txt")
+    local missing_files=()
 
-###############################################################################
+    for file in "${required_files[@]}"; do
+        if [[ ! -f "${script_dir}/${file}" ]]; then
+            missing_files+=("${file}")
+        fi
+    done
+
+    if [[ ${#missing_files[@]} -gt 0 ]]; then
+        log "ERROR" "Missing required files: ${missing_files[*]}"
+        exit 1
+    fi
+}
+
+# Function to verify command exists
+verify_command() {
+    local cmd=$1
+    if ! command -v "$cmd" &> /dev/null; then
+        log "ERROR" "Required command not found: $cmd"
+        return 1
+    fi
+    return 0
+}
+
+# Function to verify installation
+verify_installation() {
+    local name=$1
+    local type=$2
+    local identifier=$3
+
+    case $type in
+        "brew")
+            if brew list | grep -q "^${identifier}$"; then
+                log "SUCCESS" "$name installed successfully"
+                return 0
+            fi
+            ;;
+        "cask")
+            if brew list --cask | grep -q "^${identifier}$"; then
+                log "SUCCESS" "$name installed successfully"
+                return 0
+            fi
+            ;;
+        "vscode")
+            if code --list-extensions | grep -q "^${identifier}$"; then
+                log "SUCCESS" "$name installed successfully"
+                return 0
+            fi
+            ;;
+    esac
+
+    log "ERROR" "Failed to verify installation of $name"
+    return 1
+}
+
+# Function to create installation summary
+create_summary() {
+    local summary_file="${HOME}/setup_summary_$(date +%Y%m%d_%H%M%S).txt"
+    
+    {
+        echo "Installation Summary ($(date))"
+        echo "=============================="
+        echo
+        echo "Brew Packages:"
+        brew list
+        echo
+        echo "Cask Applications:"
+        brew list --cask
+        echo
+        echo "VS Code Extensions:"
+        code --list-extensions
+        echo
+        echo "Environment Information:"
+        echo "- macOS Version: $(sw_vers -productVersion)"
+        echo "- Shell: $SHELL"
+        echo "- Node Version: $(node -v 2>/dev/null || echo 'Not installed')"
+        echo "- Python Version: $(python3 -V 2>/dev/null || echo 'Not installed')"
+        echo "- Git Version: $(git --version 2>/dev/null || echo 'Not installed')"
+    } > "$summary_file"
+
+    log "INFO" "Installation summary saved to: $summary_file"
+}
+
+# Function to backup existing configurations
+backup_configs() {
+    local backup_dir="${HOME}/.config_backup_$(date +%Y%m%d_%H%M%S)"
+    log "INFO" "Creating backup of existing configurations in $backup_dir"
+    
+    mkdir -p "$backup_dir"
+    
+    # Backup existing config files
+    [[ -f "$HOME/.zshrc" ]] && cp "$HOME/.zshrc" "$backup_dir/"
+    [[ -f "$HOME/.gitconfig" ]] && cp "$HOME/.gitconfig" "$backup_dir/"
+    [[ -f "$HOME/.vimrc" ]] && cp "$HOME/.vimrc" "$backup_dir/"
+    
+    # Backup VS Code settings
+    local vscode_settings="$HOME/Library/Application Support/Code/User/settings.json"
+    [[ -f "$vscode_settings" ]] && cp "$vscode_settings" "$backup_dir/"
+    
+    log "SUCCESS" "Configurations backed up to: $backup_dir"
+}
+
+# Start setup
+log "INFO" "Starting setup script..."
+
+# Check for required files
+check_required_files
+
+# Verify essential commands
+verify_command "curl" || exit 1
+verify_command "git" || exit 1
+
+# Backup existing configurations
+backup_configs
+
+###########################################
 # Interactive Flags
-###############################################################################
+###########################################
 # Allows the user to choose between a minimal and a full installation
 FULL_INSTALL=false
 
@@ -50,9 +200,9 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
-###############################################################################
+###########################################
 # Architecture Check (Apple Silicon vs. Intel)
-###############################################################################
+###########################################
 IS_APPLE_SILICON=false
 if [[ "$(uname -m)" == "arm64" ]]; then
     IS_APPLE_SILICON=true
@@ -63,385 +213,181 @@ else
     export PATH="/usr/local/bin:$PATH"
 fi
 
-
-###############################################################################
+###########################################
 # Homebrew Installation & Update
-###############################################################################
+###########################################
 install_homebrew() {
-    log "Checking for Homebrew..."
+    log "INFO" "Checking for Homebrew..."
     if ! command -v brew &>/dev/null; then
-        log "Homebrew not found. Installing..."
+        log "INFO" "Homebrew not found. Installing..."
         /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
     else
-        log "Updating Homebrew..."
+        log "INFO" "Updating Homebrew..."
         brew update
     fi
 }
 
-###############################################################################
-# Brew Packages
-###############################################################################
-brew_packages=(
-    # Version Control
-    git              # Version control system
-    gh               # GitHub CLI for better GitHub integration
-
-    # Node.js Development
-    fnm              # Fast Node Manager
-    pnpm             # Preferred package manager
-
-    # Modern JavaScript/TypeScript Runtimes
-    deno             # Secure runtime
-    bun              # Fast all-in-one JS runtime
-
-    # Terminal Improvements
-    zsh-syntax-highlighting
-    zsh-autosuggestions
-    fzf
-
-    # Editors and IDEs
-    vim
-    nvim
-
-    # Development Tools
-    python3
-    rust
-    docker          # CLI for Docker (optional if you’re using Docker Desktop)
-    miniconda
-
-    # Security
-    gpg
-    pinentry-mac
-)
-
+###########################################
+# Core Development Tools Installation
+###########################################
+# Install essential development packages
+# Each tool is carefully chosen for modern web development
 install_brew_packages() {
-    log "Installing brew packages..."
-    for package in "${brew_packages[@]}"; do
-        log "Installing $package..."
-        brew install "$package"
-    done
+    log "INFO" "Installing brew packages..."
+    local failed_packages=()
+
+    while IFS= read -r line || [[ -n "$line" ]]; do
+        # Skip comments and empty lines
+        [[ $line =~ ^#.*$ ]] || [[ -z "$line" ]] && continue
+        
+        # Extract package name (everything before the first #)
+        package=$(echo "$line" | sed 's/[[:space:]]*#.*$//' | xargs)
+        
+        if [[ -n "$package" ]]; then
+            log "INFO" "Installing $package..."
+            if brew install "$package" 2>/dev/null; then
+                verify_installation "$package" "brew" "$package" || failed_packages+=("$package")
+            else
+                log "ERROR" "Failed to install $package"
+                failed_packages+=("$package")
+            fi
+        fi
+    done < "$(dirname "$0")/packages.txt"
+
+    if [[ ${#failed_packages[@]} -gt 0 ]]; then
+        log "WARNING" "Failed to install the following packages: ${failed_packages[*]}"
+        return 1
+    fi
+
+    log "SUCCESS" "All brew packages installed successfully"
 }
-
-###############################################################################
-# Brew Cask Applications
-###############################################################################
-brew_cask_apps=(
-    # Development Tools
-    visual-studio-code
-    cursor
-    zed
-    windsurf
-    httpie
-    docker-desktop       # Docker Desktop UI—see caution note below
-    ngrok
-
-    # Browsers
-    arc
-    firefox@developer-edition
-
-    # Productivity
-    raycast
-    ghostty
-    notion
-    notion-calendar
-    setapp
-    rectangle
-    maccy
-
-    # Communication
-    slack
-    telegram
-    discord
-    zoom
-
-    # Design Tools
-    figma
-
-    # Project Management
-    linear-linear
-
-    # Entertainment
-    spotify
-)
 
 install_brew_cask_apps() {
-    log "Installing cask applications..."
+    log "INFO" "Installing applications..."
+    local failed_apps=()
 
-    for app in "${brew_cask_apps[@]}"; do
-        # Verify the cask exists before installing
-        if brew search --casks "$app" | grep -q "$app"; then
-            log "Installing $app..."
-            brew install --cask "$app"
-        else
-            log "Skipping $app, not found in Homebrew Cask."
+    while IFS= read -r line || [[ -n "$line" ]]; do
+        # Skip comments and empty lines
+        [[ $line =~ ^#.*$ ]] || [[ -z "$line" ]] && continue
+        
+        # Extract app name (everything before the first #)
+        app=$(echo "$line" | sed 's/[[:space:]]*#.*$//' | xargs)
+        
+        if [[ -n "$app" ]]; then
+            log "INFO" "Installing $app..."
+            if brew install --cask "$app" 2>/dev/null; then
+                verify_installation "$app" "cask" "$app" || failed_apps+=("$app")
+            else
+                log "ERROR" "Failed to install $app"
+                failed_apps+=("$app")
+            fi
         fi
-    done
-    
-    # Caution note about Docker vs. Docker Desktop
-    log "Note: You've installed both Docker CLI and Docker Desktop. If you plan on using Docker Desktop primarily, the standalone Docker CLI might be optional."
+    done < "$(dirname "$0")/apps.txt"
+
+    if [[ ${#failed_apps[@]} -gt 0 ]]; then
+        log "WARNING" "Failed to install the following apps: ${failed_apps[*]}"
+        return 1
+    }
+
+    log "SUCCESS" "All applications installed successfully"
 }
-
-###############################################################################
-# Optional: Single Source Configuration (Commented Example)
-###############################################################################
-# Instead of listing packages in the script, you could store them in a file:
-#   brew_packages.txt
-#   brew_cask_apps.txt
-#   code_extensions.txt
-# Then read them in:
-#   while read -r pkg; do brew install "$pkg"; done < brew_packages.txt
-
-###############################################################################
-# Oh My Zsh Installation & Configuration
-###############################################################################
-install_oh_my_zsh() {
-    # Install Oh My Zsh for better shell experience
-    if [ ! -d "$HOME/.oh-my-zsh" ]; then
-        log "Installing Oh My Zsh..."
-        sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
-    fi
-
-    # Optionally manage plugins with Oh My Zsh plugin system instead of Homebrew:
-    #   plugins=(
-    #       git
-    #       node
-    #       npm
-    #       macos
-    #       zsh-syntax-highlighting
-    #       zsh-autosuggestions
-    #   )
-
-    # Install Typewritten prompt
-    log "Installing Typewritten prompt..."
-    npm install -g typewritten
-
-    # Configure shell
-    log "Configuring shell..."
-    cat << 'EOF' >> ~/.zshrc
-
-###########################################
-# Shell Configuration
-###########################################
-# Load syntax highlighting and autosuggestions from brew
-if [ -f $(brew --prefix)/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh ]; then
-    source $(brew --prefix)/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
-fi
-
-if [ -f $(brew --prefix)/share/zsh-autosuggestions/zsh-autosuggestions.zsh ]; then
-    source $(brew --prefix)/share/zsh-autosuggestions/zsh-autosuggestions.zsh
-fi
-
-# Set ZSH theme to Typewritten
-ZSH_THEME="typewritten"
-
-# Oh My Zsh Configuration
-plugins=(
-    git
-    node
-    npm
-    macos
-    zsh-syntax-highlighting
-    zsh-autosuggestions
-)
-
-source $ZSH/oh-my-zsh.sh
-
-# Aliases for Development Workflow
-alias gs="git status"
-alias gc="git commit"
-alias gp="git push"
-alias p="pnpm"
-alias pb="pnpm build"
-alias c="clear"
-alias l="ls -la"
-alias ..="cd .."
-
-# Environment Configuration
-export PNPM_HOME="$HOME/Library/pnpm"
-export PATH="$PNPM_HOME:$PATH"
-export PATH="$HOME/.cargo/bin:$PATH"
-
-EOF
-}
-
-###############################################################################
-# Global NPM Packages
-###############################################################################
-install_global_npm_packages() {
-    log "Installing global npm packages..."
-    pnpm add -g vercel typescript @antfu/ni prettier eslint
-}
-
-###############################################################################
-# Git Configuration
-###############################################################################
-configure_git() {
-    log "Configuring Git..."
-
-    # User settings
-    git config --global user.name "Bridger Tower"
-    git config --global user.email "bridgertower@gmail.com"
-
-    # Core settings
-    git config --global init.defaultBranch main
-    git config --global core.editor "code --wait"
-    git config --global pull.rebase true
-    git config --global core.excludesfile "$HOME/.gitignore_global"
-    git config --global http.postBuffer 157286400
-
-    # Custom aliases
-    git config --global alias.send '!f() { git add . && git commit -m "${1:-wip}" && git push; }; f'
-
-    # Create global gitignore file
-    cat << EOF > ~/.gitignore_global
-.DS_Store
-.vscode/
-.idea/
-*.log
-node_modules/
-.env
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
-EOF
-
-    # SourceTree configuration (optional)
-    git config --global difftool.sourcetree.cmd 'opendiff "$LOCAL" "$REMOTE"'
-    git config --global mergetool.sourcetree.cmd '/Applications/Sourcetree.app/Contents/Resources/opendiff-w.sh "$LOCAL" "$REMOTE" -ancestor "$BASE" -merge "$MERGED"'
-    git config --global mergetool.sourcetree.trustExitCode true
-}
-
-###############################################################################
-# SSH & GPG Configuration
-###############################################################################
-configure_ssh_gpg() {
-    # Set up SSH key for GitHub
-    log "Setting up SSH key..."
-    ssh-keygen -t ed25519 -C "$(git config --get user.email)" -f "$HOME/.ssh/id_ed25519" -N ""
-
-    # Configure GPG for signed commits
-    log "Configuring GPG..."
-    echo "pinentry-program $(which pinentry-mac)" >> ~/.gnupg/gpg-agent.conf
-    gpgconf --kill gpg-agent
-}
-
-###############################################################################
-# macOS System Preferences
-###############################################################################
-configure_macos_settings() {
-    log "Configuring macOS settings..."
-
-    # Dock preferences
-    log "Configuring Dock..."
-    defaults write com.apple.dock autohide -bool true
-    defaults write com.apple.dock tilesize -int 36
-    defaults write com.apple.dock magnification -bool true
-
-    # Screenshot settings
-    log "Configuring Screenshots..."
-    mkdir -p ~/Screenshots
-    defaults write com.apple.screencapture location ~/Screenshots
-
-    # Security settings
-    log "Configuring Security..."
-    defaults write com.apple.screensaver askForPassword -int 1
-    defaults write com.apple.screensaver askForPasswordDelay -int 0
-
-    # Trackpad settings
-    log "Configuring Trackpad..."
-    defaults write -g com.apple.trackpad.scaling -float 2.5
-
-    # Keyboard settings
-    log "Configuring Keyboard..."
-    defaults write NSGlobalDomain KeyRepeat -int 1
-    defaults write NSGlobalDomain InitialKeyRepeat -int 15
-    defaults write NSGlobalDomain ApplePressAndHoldEnabled -bool false
-
-    # Finder settings
-    log "Configuring Finder..."
-    defaults write com.apple.finder AppleShowAllFiles YES
-    defaults write com.apple.finder ShowPathbar -bool true
-    defaults write com.apple.finder ShowStatusBar -bool true
-    defaults write NSGlobalDomain AppleShowAllExtensions -bool true
-    defaults write com.apple.finder FXPreferredViewStyle -string "Nlsv"
-    defaults write com.apple.finder _FXShowPosixPathInTitle -bool true
-
-    # Restart affected apps
-    log "Restarting affected applications..."
-    killall Dock
-    killall Finder
-    killall SystemUIServer
-}
-
-###############################################################################
-# VS Code Extensions
-###############################################################################
-code_extensions=(
-    "alexcvzz.vscode-sqlite"
-    "amazonwebservices.codewhisperer-for-command-line-companion"
-    "bradlc.vscode-tailwindcss"
-    "codeium.windsurfpyright"
-    "esbenp.prettier-vscode"
-    "formulahendry.auto-close-tag"
-    "github.vscode-github-actions"
-    "ms-azuretools.vscode-docker"
-    "ms-python.debugpy"
-    "ms-python.python"
-    "raillyhugo.one-hunter"
-    "redwan-hossain.auto-rename-tag-clone"
-)
 
 install_vscode_extensions() {
-    log "Installing VS Code extensions..."
+    log "INFO" "Installing VS Code extensions..."
+    local failed_extensions=()
 
-    # Make sure 'code' CLI is available or remind user to add it
-    if ! command -v code &>/dev/null; then
-        log "WARNING: 'code' command not found. Please enable 'code' CLI from VS Code."
-        log "Skipping automatic extension installs..."
-        return
-    fi
+    # Verify VS Code CLI is available
+    if ! verify_command "code"; then
+        log "ERROR" "'code' command not found. Please install VS Code and enable the CLI."
+        return 1
+    }
 
-    for extension in "${code_extensions[@]}"; do
-        log "Installing VS Code extension: $extension..."
-        code --install-extension "$extension"
-    done
+    while IFS= read -r line || [[ -n "$line" ]]; do
+        # Skip comments and empty lines
+        [[ $line =~ ^#.*$ ]] || [[ -z "$line" ]] && continue
+        
+        # Extract extension ID (everything before the first #)
+        extension=$(echo "$line" | sed 's/[[:space:]]*#.*$//' | xargs)
+        
+        if [[ -n "$extension" ]]; then
+            log "INFO" "Installing VS Code extension: $extension..."
+            if code --install-extension "$extension" 2>/dev/null; then
+                verify_installation "$extension" "vscode" "$extension" || failed_extensions+=("$extension")
+            else
+                log "ERROR" "Failed to install extension: $extension"
+                failed_extensions+=("$extension")
+            fi
+        fi
+    done < "$(dirname "$0")/vscode-extensions.txt"
+
+    if [[ ${#failed_extensions[@]} -gt 0 ]]; then
+        log "WARNING" "Failed to install the following extensions: ${failed_extensions[*]}"
+        return 1
+    }
+
+    log "SUCCESS" "All VS Code extensions installed successfully"
 }
 
-###############################################################################
-# Main Execution
-###############################################################################
+# Function to create installation summary
+create_summary() {
+    local summary_file="${HOME}/setup_summary_$(date +%Y%m%d_%H%M%S).txt"
+    
+    {
+        echo "Installation Summary ($(date))"
+        echo "=============================="
+        echo
+        echo "Brew Packages:"
+        brew list
+        echo
+        echo "Cask Applications:"
+        brew list --cask
+        echo
+        echo "VS Code Extensions:"
+        code --list-extensions
+        echo
+        echo "Environment Information:"
+        echo "- macOS Version: $(sw_vers -productVersion)"
+        echo "- Shell: $SHELL"
+        echo "- Node Version: $(node -v 2>/dev/null || echo 'Not installed')"
+        echo "- Python Version: $(python3 -V 2>/dev/null || echo 'Not installed')"
+        echo "- Git Version: $(git --version 2>/dev/null || echo 'Not installed')"
+    } > "$summary_file"
+
+    log "INFO" "Installation summary saved to: $summary_file"
+}
+
+# Main execution
 main() {
-    install_homebrew
-    install_brew_packages
-    install_oh_my_zsh
-
-    # Only install cask applications if --full is used (example usage)
-    if $FULL_INSTALL; then
-        install_brew_cask_apps
-        configure_ssh_gpg
-    else
-        log "Skipping full cask app installation (use --full to enable)."
-    fi
-
-    install_global_npm_packages
-    configure_git
-    configure_macos_settings
-    install_vscode_extensions
-
-    log "Setup completed successfully!"
-    cat <<EOF
-
-===================== NEXT STEPS =====================
-1. Open a new terminal session or run 'source ~/.zshrc'
-   to apply your new shell configuration.
-2. If not done yet, manually install any apps not on 
-   Homebrew (e.g. Craft, granola.ai, Things).
-3. Consider configuring VS Code to sync settings 
-   (Settings Sync) or manually log in to your account.
-4. Enjoy your new development environment!
-======================================================
-EOF
+    local start_time=$(date +%s)
+    local script_dir=$(dirname "$0")
+    
+    # Create log directory
+    mkdir -p "${HOME}/setup_logs"
+    local log_file="${HOME}/setup_logs/setup_$(date +%Y%m%d_%H%M%S).log"
+    
+    # Redirect all output to log file while maintaining console output
+    exec 1> >(tee -a "$log_file")
+    exec 2> >(tee -a "$log_file" >&2)
+    
+    log "INFO" "Setup started. Log file: $log_file"
+    
+    # Run installations
+    install_brew_packages || log "WARNING" "Some brew packages failed to install"
+    install_brew_cask_apps || log "WARNING" "Some applications failed to install"
+    install_vscode_extensions || log "WARNING" "Some VS Code extensions failed to install"
+    
+    # Create installation summary
+    create_summary
+    
+    # Calculate execution time
+    local end_time=$(date +%s)
+    local duration=$((end_time - start_time))
+    log "SUCCESS" "Setup completed in ${duration} seconds"
+    
+    # Final instructions
+    log "INFO" "Please check the installation summary and log file for any issues"
+    log "INFO" "You may need to restart your computer for all changes to take effect"
 }
 
+# Run main function
 main

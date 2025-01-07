@@ -1,0 +1,30 @@
+# Version Control
+git              # Version control system
+gh               # GitHub CLI for better GitHub integration
+
+# Node.js Development
+fnm              # Fast Node Manager (better than nvm)
+pnpm             # Preferred package manager (faster than npm)
+
+# Modern JavaScript/TypeScript Runtimes
+deno             # Secure runtime with TypeScript support
+bun              # Fast all-in-one JavaScript runtime
+
+# Terminal Improvements
+zsh-syntax-highlighting    # Better command highlighting
+zsh-autosuggestions        # Fish-like autosuggestions
+fzf                        # Fuzzy finder for terminal
+
+# Editors and IDEs
+vim             # Terminal text editor
+nvim            # Modern, async vim-based editor
+
+# Development Tools
+python3         # Python programming language
+rust            # Systems programming language
+docker          # Containerization platform
+miniconda       # Minimal conda installation
+
+# Security
+gpg             # GNU Privacy Guard for signing commits
+pinentry-mac    # Secure password entry for GPG
