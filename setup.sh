@@ -16,6 +16,11 @@ packages=(
     vim
     zsh-syntax-highlighting
     zsh-autosuggestions
+    gh
+    pnpm
+    nvim
+    docker
+    miniconda
 )
 
 for package in "${packages[@]}"; do
@@ -24,13 +29,32 @@ done
 
 # Install apps
 apps=(
-    visual-studio-code
-    firefox
+    raycast
+    ghostty
+    notion
+    setapp
+    zoom
+    zed
+    cursor
+    windsurf
+    linear-linear
+    spotify
+    figma
+    slack
+    discord
+    maccy
+    rectangle
+    notion-calendar
 )
 
 for app in "${apps[@]}"; do
     brew install --cask "$app"
 done
+
+# Non-brew installs
+# granola.ai
+# craft.do
+# things (app store)
 
 # Add zsh plugins to .zshrc
 echo "source $(brew --prefix)/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh" >> ~/.zshrc
