@@ -282,15 +282,47 @@ gpgconf --kill gpg-agent
 ###########################################
 # Configure macOS for development
 log "Configuring macOS settings..."
+
+# Dock preferences
+log "Configuring Dock..."
+defaults write com.apple.dock autohide -bool true
+defaults write com.apple.dock tilesize -int 36
+defaults write com.apple.dock magnification -bool true
+
+# Screenshot settings
+log "Configuring Screenshots..."
+mkdir -p ~/Screenshots
+defaults write com.apple.screencapture location ~/Screenshots
+
+# Security settings
+log "Configuring Security..."
+defaults write com.apple.screensaver askForPassword -int 1
+defaults write com.apple.screensaver askForPasswordDelay -int 0
+
+# Trackpad settings
+log "Configuring Trackpad..."
+defaults write -g com.apple.trackpad.scaling -float 2.5
+
+# Keyboard settings
+log "Configuring Keyboard..."
+defaults write NSGlobalDomain KeyRepeat -int 1
+defaults write NSGlobalDomain InitialKeyRepeat -int 15
+defaults write NSGlobalDomain ApplePressAndHoldEnabled -bool false
+
 # Finder settings
+log "Configuring Finder..."
 defaults write com.apple.finder AppleShowAllFiles YES
 defaults write com.apple.finder ShowPathbar -bool true
 defaults write com.apple.finder ShowStatusBar -bool true
+defaults write NSGlobalDomain AppleShowAllExtensions -bool true
+defaults write com.apple.finder FXPreferredViewStyle -string "Nlsv"
+defaults write com.apple.finder _FXShowPosixPathInTitle -bool true
 
-# Keyboard settings
-defaults write NSGlobalDomain KeyRepeat -int 1
-defaults write NSGlobalDomain InitialKeyRepeat -int 10
-defaults write NSGlobalDomain ApplePressAndHoldEnabled -bool false
+# Restart affected applications
+log "Restarting affected applications..."
+killall Dock
+killall Finder
+killall SystemUIServer
 
 ###########################################
 # VS Code Extensions
