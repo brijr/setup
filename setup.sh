@@ -268,12 +268,18 @@ defaults write NSGlobalDomain ApplePressAndHoldEnabled -bool false
 # Install essential VS Code extensions for web development
 log "Installing VS Code extensions..."
 code_extensions=(
-    "bradlc.vscode-tailwindcss"        # Tailwind CSS IntelliSense
-    "dsznajder.es7-react-js-snippets"  # React/Redux snippets
-    "dbaeumer.vscode-eslint"           # ESLint integration
-    "esbenp.prettier-vscode"           # Prettier formatting
-    "github.copilot"                   # AI code completion
-    "github.copilot-chat"              # AI chat interface
+    "alexcvzz.vscode-sqlite"                                     # SQLite Viewer
+    "amazonwebservices.codewhisperer-for-command-line-companion" # AWS CodeWhisperer
+    "bradlc.vscode-tailwindcss"                                  # Tailwind CSS IntelliSense
+    "codeium.windsurfpyright"                                    # AI Code Completion
+    "esbenp.prettier-vscode"                                     # Prettier formatting
+    "formulahendry.auto-close-tag"                               # Auto close HTML/XML tags
+    "github.vscode-github-actions"                               # GitHub Actions
+    "ms-azuretools.vscode-docker"                                # Docker integration
+    "ms-python.debugpy"                                          # Python debugger
+    "ms-python.python"                                           # Python support
+    "raillyhugo.one-hunter"                                      # One Hunter theme
+    "redwan-hossain.auto-rename-tag-clone"                       # Auto rename HTML/XML tags
 )
 
 for extension in "${code_extensions[@]}"; do
