@@ -1,4 +1,4 @@
-# Dot Files for [brijr](https://brijr.dev)
+# Macbook Setup for [brijr](https://brijr.dev)
 
 1. Clone the repo:
 
