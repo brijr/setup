@@ -3,13 +3,13 @@
 1. Clone the repo:
 
 ```bash
-git clone https:://github.com/brijr/dot.git
+git clone https:://github.com/brijr/setup.git
 ```
 
 2. Change into the directory:
 
 ```bash
-cd dot
+cd setup
 ```
 
 3. Make it executable:
