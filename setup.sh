@@ -229,11 +229,41 @@ pnpm add -g vercel typescript @antfu/ni prettier eslint
 ###########################################
 # Git Configuration
 ###########################################
-# Configure Git with modern defaults
+# Configure Git with modern defaults and personal settings
 log "Configuring Git..."
+
+# User settings
+git config --global user.name "Bridger Tower"
+git config --global user.email "bridgertower@gmail.com"
+
+# Core settings
 git config --global init.defaultBranch main
 git config --global core.editor "code --wait"
 git config --global pull.rebase true
+git config --global core.excludesfile /Users/brijr/.gitignore_global
+git config --global http.postBuffer 157286400
+
+# Custom aliases
+git config --global alias.send '!f() { git add . && git commit -m "${1:-wip}" && git push; }; f'
+
+# Create global gitignore file
+cat << EOF > ~/.gitignore_global
+.DS_Store
+.vscode/
+.idea/
+*.log
+node_modules/
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+EOF
+
+# SourceTree configuration
+git config --global difftool.sourcetree.cmd 'opendiff "$LOCAL" "$REMOTE"'
+git config --global mergetool.sourcetree.cmd '/Applications/Sourcetree.app/Contents/Resources/opendiff-w.sh "$LOCAL" "$REMOTE" -ancestor "$BASE" -merge "$MERGED"'
+git config --global mergetool.sourcetree.trustExitCode true
 
 ###########################################
 # SSH & GPG Configuration
